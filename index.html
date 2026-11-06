@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LabTrack - College Lab Equipment Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <h2>⚡ LabTrack</h2>
+        <span>Lab Management</span>
+      </div>
+      <nav class="nav-menu">
+        <button class="nav-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+        <button class="nav-btn" onclick="switchTab('equipment')">Equipment Inventory</button>
+        <button class="nav-btn" onclick="switchTab('users')">Users Management</button>
+        <button class="nav-btn" onclick="switchTab('transactions')">Issue / Return Log</button>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="top-bar">
+        <h1 id="page-title">Dashboard</h1>
+        <div id="toast" class="toast hidden"></div>
+      </header>
+
+      <!-- Dashboard View -->
+      <section id="view-dashboard" class="tab-view active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Items</h3>
+            <p id="stat-total-items">0</p>
+          </div>
+          <div class="stat-card accent-green">
+            <h3>Available Units</h3>
+            <p id="stat-available-units">0</p>
+          </div>
+          <div class="stat-card accent-orange">
+            <h3>Issued Units</h3>
+            <p id="stat-issued-units">0</p>
+          </div>
+          <div class="stat-card accent-blue">
+            <h3>Total Users</h3>
+            <p id="stat-total-users">0</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Equipment Inventory View -->
+      <section id="view-equipment" class="tab-view">
+        <div class="table-actions">
+          <div class="filter-group">
+            <input type="text" id="eq-search" placeholder="Search equipment name..." oninput="renderEquipment()">
+            <select id="eq-filter-category" onchange="renderEquipment()">
+              <option value="">All Categories</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Biology">Biology</option>
+              <option value="Embedded Systems">Embedded Systems</option>
+            </select>
+            <select id="eq-filter-status" onchange="renderEquipment()">
+              <option value="">All Statuses</option>
+              <option value="Available">Available</option>
+              <option value="Unavailable">Unavailable</option>
+              <option value="Maintenance">Maintenance</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="openEquipmentModal()">+ Add New Equipment</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Name</th><th>Category</th><th>Total Qty</th><th>Available Qty</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="equipment-tbody"></tbody>
+        </table>
+      </section>
+
+      <!-- User Management View -->
+      <section id="view-users" class="tab-view">
+        <div class="table-actions">
+          <input type="text" id="user-search" placeholder="Search user..." oninput="renderUsers()">
+          <button class="btn btn-primary" onclick="openUserModal()">+ Register User</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th></tr>
+          </thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </section>
+
+      <!-- Issue and Return Log View -->
+      <section id="view-transactions" class="tab-view">
+        <div class="table-actions">
+          <button class="btn btn-primary" onclick="openIssueModal()">+ Issue Equipment</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Issue ID</th><th>Equipment</th><th>User</th><th>Qty</th><th>Issue Date</th><th>Return Date</th><th>Status</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-tbody"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal for Add/Edit Equipment -->
+  <div id="modal-equipment" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="modal-eq-title">Add New Equipment</h3>
+      <form id="form-equipment" onsubmit="handleEquipmentSubmit(event)">
+        <input type="hidden" id="eq-id">
+        <div class="form-group">
+          <label>Equipment Name</label>
+          <input type="text" id="eq-name" required>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <input type="text" id="eq-category" required placeholder="e.g., Electronics">
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" id="eq-quantity" min="1" required>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="eq-status">
+            <option value="Available">Available</option>
+            <option value="Unavailable">Unavailable</option>
+            <option value="Maintenance">Maintenance</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-equipment')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Equipment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal for Registering User -->
+  <div id="modal-user" class="modal hidden">
+    <div class="modal-content">
+      <h3>Register New User</h3>
+      <form id="form-user" onsubmit="handleUserSubmit(event)">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="usr-name" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="usr-email" required>
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select id="usr-role">
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+            <option value="administrator">Administrator</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-user')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Register</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal for Issuing Equipment -->
+  <div id="modal-issue" class="modal hidden">
+    <div class="modal-content">
+      <h3>Issue Lab Equipment</h3>
+      <form id="form-issue" onsubmit="handleIssueSubmit(event)">
+        <div class="form-group">
+          <label>Select Equipment</label>
+          <select id="issue-eq-select" required></select>
+        </div>
+        <div class="form-group">
+          <label>Select User</label>
+          <select id="issue-user-select" required></select>
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" id="issue-qty" min="1" value="1" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-issue')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Confirm Issue</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript File Linked Correctly -->
+  <script src="app.js"></script>
+</body>
+</html>
